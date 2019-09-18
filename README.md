@@ -126,6 +126,8 @@ docker run --rm -it --net mytest_network hsrnetwork/network-ninja /bin/bash
 
 Try again to send a `Hello World` message in the same way as you did before. Does it work? In fact, it should not work. Why? Well, let us have a look at the magic of one construct behind Docker's default networking: `iptables`
 
+Exit the containers by entering `Ctrl+c`.
+
 Get the network ID of the `mytest_network` network:
 ```bash
 root@hlkali:/home/hacker# docker network ls
@@ -153,8 +155,6 @@ root@hlkali:/home/hacker# iptables -S FORWARD
 ```
 
 As you can see, Docker has automatically inserted the `-A FORWARD -i br-891816429ee8 -o br-891816429ee8 -j DROP` rule which drops any traffic from the incoming (`-i`) bridge interface `br-891816429ee8` to itself (`-o`). For the default bridge interface `docker0`, however, this communication flow is accepted (`-A FORWARD -i docker0 -o docker0 -j ACCEPT`).
-
-Exit the containers by entering `Ctrl+c`.
 
 Let us have another look at Docker's `iptables` management. Within the server Terminal window, start a container which publishes its port `5000` to the outside world via the hosts port `5000`:
 
