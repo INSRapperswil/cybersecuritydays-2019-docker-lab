@@ -24,7 +24,7 @@ If you’re stuck or look for a more detailed definition, refer to the link http
 If you already downloaded the Hacking-Lab LiveCD you are basically ready and good to go to start this lab. If not, please download the Hacking-Lab LiveCD from https://livecd.hacking-lab.com/ and follow the instructions from https://github.com/ibuetler/e1pub/blob/master/hacking-lab-livecd-installation/install-livecd-en.md to set it up. 
 Skip the `VPN` part at the end of the instructions - you do not need the Hacking-Lab OpenVPN for this lab.
 
-**Note:** Its not a MUST to use the LiveCD if you have an own Linux server with Docker installed available. Nevertheless, please be aware that some configuraitons of this lab could break your existing Docker setup if you are using your own server. So please just play with these configurations on a server, if its is not needed for any productive workload.
+**Note:** Its not a MUST to use the Hacking-Lab LiveCD if you have an own Linux server with Docker installed available. Nevertheless, please be aware that some configuraitons of this lab could break your existing Docker setup if you are using your own server. So please just play with these configurations on a server, if its is not needed for any productive workload.
 
 ## Lab
 ### Part 1 - Docker Engine Setup Verification
@@ -65,27 +65,27 @@ docker run -it --net host --pid host --userns host --cap-add audit_control \
   docker/docker-bench-security
 ```
 
-Have a look at the output of this command. As you probably notice there isn't very much to complain about. That's mainly because the Hacking-Lab LiveCD has [Apparmor](https://en.wikipedia.org/wiki/AppArmor) (alternative to SELinux) installed and set to enforcing mode using the `docker-default` profile, Docker Swarm mode is disabled and there aren't many/any Docker images or running container.
+Have a look at the output of this command. As you probably notice there isn't very much to complain about. That's mainly because the Hacking-Lab LiveCD has [Apparmor](https://en.wikipedia.org/wiki/AppArmor) (alternative to SELinux) installed and set to enforcing mode using the `docker-default` profile, Docker Swarm mode is disabled and there aren't many/any Docker images or running containers.
 
 #### Docker Networking
-Plase have a special look at the following lines from the output of the previous lab part:
+Please have a special look at the following lines from the output of the previous lab part:
 
 ```bash
 [INFO] 2 - Docker daemon configuration
 [WARN] 2.1  - Ensure network traffic is restricted between containers on the default bridge
 ```
 
-What does this mean? Well it means that any container you start by using `docker run` will be placed inside the default `docker0` Linux bridge and that every container attached to this bridge can commicate with the others via **all** ports! You could place containers inside custom created Docker networks by using the `docker run ` option `--network` but as already said, that's something you have to care about by explicity using this param manually.
+What does this mean? Well it means that any container you start by using `docker run` will be placed inside the default `docker0` Linux bridge and that every container attached to this bridge can commicate with the others via **all** ports! You could place containers inside custom created Docker networks by using the `docker run` option `--net / --network` but as already said, that's something you have to care about by explicitly using this param manually.
 
-Let's prove these statements by running two `network-ninja` containers and test the reachability between each other. The [network ninja](https://github.com/HSRNetwork/network-ninja) Docker image is a simple and relatively small network troubleshooing image with batteries included (some helpful tools installed). We at the INS Intitute for Networked Solutions mainly built and use it to troubleshoot network issues or for lab setups.
-Open a second Terminal window and issue the following two statements each inside it's own window.
+Let's prove these statements by running two `network-ninja` containers and test the reachability between each other. The [network ninja](https://github.com/HSRNetwork/network-ninja) Docker image is a simple and relatively small network troubleshooting image with batteries included (some helpful tools pre-installed). We at the INS Intitute for Networked Solutions mainly built and use it to troubleshoot network issues or for lab setups.
+Open a second Terminal window and issue the following two statements (each inside it's own window).
 
 Terminal Window 1 (server) & 2 (client):
 ```bash
 docker run --rm -it hsrnetwork/network-ninja /bin/bash
 ```
 
-Now that you should have two open Bash sessions, issue `ip address` inside the server session to get it's current IP address. Write it down, you will need it in a few minutes.
+Now that you should have two open Bash sessions, issue `ip address` inside the server session to get it's current IP address. Write it down, you will need it in a few moments.
 
 Start a listening service (TCP) on any port you like (e.g. `5000`) by using [Netcat](https://en.wikipedia.org/wiki/Netcat) (`nc`):
 
@@ -94,14 +94,14 @@ Start a listening service (TCP) on any port you like (e.g. `5000`) by using [Net
 nc -l -p 5000
 ```
 
-On the client side, issue the following Netcad command and send `Hello World` (hit Enter to send it):
+On the client side, issue the following Netcat command and send `Hello World` (hit Enter to send it):
 ```bash
 # This is a blocking call. Use Ctrl+c to exit.
 nc <server-ip-here> 5000
 Hello World<ENTER>
 ```
 
-Do you receive the message on the server side? You should. If not, please ask an instructor for help.
+Did you receive the message on the server side? You should. If not, please ask an instructor for help.
 
 As you have seen now, communication between these containers inside the `docker0` network can take place via all ports. If you still do not belive it, please try any other port and test the communication again. 
 Perhaps with UDP? Netcat parameter `-u` allows you to do so.
@@ -110,7 +110,7 @@ Exit the containers by entering `Ctrl+c`.
 
 You could restrict this default communication between containers inside the same Docker network (attached to the same Linux bridge) by setting the Docker daemon property `icc` (inter-container connection) to `false`. This could be done inside `/etc/docker/daemon.json` (file does not exist by default). Afterwards the Docker daemon must be restarted using `systemctl restart docker`.
 
-As an alternative, you could also specify this behaviour on Docker network basis by specifiying `-o "com.docker.network.bridge.enable_icc"="false"`. 
+As an alternative, you could also specify this behaviour on Docker network basis by specifying `-o "com.docker.network.bridge.enable_icc"="false"`. 
 Create the Docker network by using the provided command down here:
 
 ```bash
@@ -124,7 +124,7 @@ Terminal Window 1 (server) & 2 (client):
 docker run --rm -it --net mytest_network hsrnetwork/network-ninja /bin/bash
 ```
 
-Try again to send a `Hello World` message the same way as before. Does it work? It shouldn't work. Why? Well.. let's have a look at the magic behind Docker's default networking: `iptables`
+Try again to send a `Hello World` message the same way as before. Does it work? It shouldn't work. Why? Well.. let's have a look at the magic of one construct behind Docker's default networking: `iptables`
 
 Get the network ID of the `mytest_network` network:
 ```bash
@@ -156,14 +156,14 @@ As you can see, Docker automatically inserted the `-A FORWARD -i br-891816429ee8
 
 Exit the containers by entering `Ctrl+c`.
 
-Lets have another look at Docker's `iptables` handling. Within the server Termin window, start a container which publishes its port `5000` to the outside world via the hosts port `5000`:
+Lets have another look at Docker's `iptables` management. Within the server Terminal window, start a container which publishes its port `5000` to the outside world via the hosts port `5000`:
 
 ```bash
 # This is a blocking call. Use Ctrl+c to exit.
 docker run --rm -it -p 5000:5000 hsrnetwork/network-ninja nc -l -p 5000
 ```
 
-Access this port directly from the host via `nc localhost 5000`, send the same message as previouly `Hello World` and once again, hit Enter. You should now see the message inside the server Terminal window.
+Access this port directly from the host via `nc localhost 5000` (via another Terminal window), send the same message as previouly (`Hello World`) and once again, hit Enter. You should now see the message inside the server Terminal window.
 
 Finally check whats the magic behind this:
 
@@ -174,12 +174,12 @@ target     prot opt source               destination
 ACCEPT     tcp  --  anywhere             172.17.0.2           tcp dpt:5000
 ```
 
-As you can see, Docker simply creates an `iptables` rule inside the `DOCKER` chain which forwards the traffic to `5000/tcp` the the containers IP `172.17.0.2`.
+As you can see, Docker simply creates an `iptables` rule inside the `DOCKER` chain which forwards the traffic to `5000/tcp` on the containers IP `172.17.0.2`.
 
 You might now wonder why exactly `iptables`'s `DOCKER` chain? The answer is quite simple, Docker uses multiple `iptables` chains for different purposes:
 
 - `DOCKER`: All Docker rules are loaded to this chain (**e.g. port publishing via `-p`**). It's not recommended to modify this chain manually.
-- `DOCKER-USER`: This chain is loaded before `DOCKER`. It allows you to specify custom rules and since the Docker daemon does not mess with this chain, they won't be overridden.
+- `DOCKER-USER`: This chain is loaded **before** `DOCKER`. It allows you to specify custom rules and since the Docker daemon does not mess with this chain, they won't be overridden.
 - `DOCKER-ISOLATION-STAGE-1/2`: These two chains isolate the different Docker networks from each other so it's not possible to access `containerX` (running in `networkX`) from `contianerY` (running in `networkY`).
 
 Exit the running container by entering `Ctrl+c`.
@@ -187,7 +187,7 @@ Exit the running container by entering `Ctrl+c`.
 ### Part 3 - Network Namespace
 In this part you will analyze Docker's Linux namespace handling.
 
-1. Start a simple Docker container which does nothing special. Since PID 1 of the container needs to be blocking, just run `ping 8.8.8.8` to keep the container alive (if PID 1 exits, the container is stopped):
+1. Start a simple Docker container which does nothing special. Since PID 1 of the container needs to be blocking, just run `ping 8.8.8.8` to keep the container alive (if PID 1 exits, a container is stopped):
 
 ```bash
 docker run --rm -d alpine ping 8.8.8.8
@@ -206,11 +206,11 @@ root@hlkali:/home/hacker# docker inspect --format '{{.State.Pid}}' 0ac5a5a8ab17
 13758     # <-- That's the containers PID
 ```
 
-4. Now it's time to enter the containers NET namespace (netns). Use the `nsenter` command down here to start a Bash shell inside the containers netns.
+4. Now it's time to enter the containers NET namespace (netns). Use the `nsenter` command shown down here to start a Bash shell inside the containers netns.
 ```bash
 root@hlkali:/home/hacker# nsenter -t 13758 -n /bin/bash
 ```
-**Hint**: You will not see any output from the `nsenter` command. It just looks like a new Bash line but actually you switched from the default netns to the containers netns.
+**Hint**: You will not see any output from the `nsenter` command. It just looks like a new Bash line but actually you switched from the default host netns to the container's netns.
 
 5. Issue the `ip address` command to see that your Bash shell really entered the containers netns:
 ```bash
@@ -250,19 +250,19 @@ You probably guessed right, this container would have **full access to the hosts
 
 ### Part 4 - Building Secure Docker Images
 #### Overview
-Finally its time to dockerize an example application called the "Voting Application". The goal is to build secure Docker images, which can be used for production. The source code of the application itself is provided by Docker (the company).
+Finally it is time to dockerize an example application called the "Secure Voting Application". The goal is to build secure Docker images, which can be used for production. The source code of the application itself is provided by Docker (the company).
 
 ![architecture](/assets/architecture.png)
 
 #### Building the Images
-Start by `git clone` the prepared files to your local machine:
+Start by `git clone` the prepared files to your Hacking-Lab LiveCD:
 ```bash
 git clone https://github.com/HSRNetwork/secure-voting-app.git
 ```
 
-**Hint:** If you would like to sneak peek into a possible solution for this lab part just take a look at the provided solutions inside the `./secure-voting-app/solution` directory.
+**Hint:** If you would like to sneak peek into a possible solution for this lab part, just take a look at the provided solutions inside the `./secure-voting-app/solution` directory.
 
-To save some time, we have already prepared the `Dockerfile` for the worker application part. Your job is to resolve all `TODOs` and `…`'s inside the vote and result `Dockerfile`.
+To save some time, we have already prepared the `Dockerfile` for the **worker** application part. Your job is to resolve all `TODOs` and `…`'s inside the **vote** and **result** `Dockerfile`.
 
 Use the [official Dockerfile reference](https://docs.docker.com/engine/reference/builder/) in order to get information about the Dockerfile instructions/commands.
 
@@ -288,7 +288,7 @@ cd ./secure-voting-app/src/result
 docker build -t result-webapp:1.0 .     # Please note the `.` at the end – it's required
 ```
 
-For this service, you should also learn that not every official Docker image is nice and shiny. Have a look at the vulnerability scan from the latest (as of 17.09.2019) `node:current-alpine` image: https://hub.docker.com/layers/node/library/node/current-alpine/images/sha256-7a1789ae7b16137af96748012c6175c0561709f830de29922b7355509f4f9175
+Take this service as an example, that you should not use every official Docker image that looks just nice and shiny in the first moment. Have a deeper look at the vulnerability scan from the latest (as of 17.09.2019) `node:current-alpine` image: https://hub.docker.com/layers/node/library/node/current-alpine/images/sha256-7a1789ae7b16137af96748012c6175c0561709f830de29922b7355509f4f9175
 
 ![node_current_alpine](/assets/node_current_alpine.png)
 
@@ -305,6 +305,7 @@ Last but not least, resolve all `TODOs` and `…`'s inside the `./secure-voting-
 To finally test the whole applicaton stack, issue `docker-compose up` and visit http://localhost:5000 and http://localhost:5001 with Firefox or any browser of your choice. 
 
 Open a second Terminal window and check if all processes inside the vote container and all worker processes withing the result container are running with the defined service user. It will probably show UID `hacker` but that's just because the Hacking-Lab LiveCD user `hacker` has the same UID as the service users used inside the containers (UID `1000`).
+
 ```bash
 root@hlkali:/home/hacker/secure-voting-app/solution# docker top solution_vote_1
 UID                 PID                 PPID                C                   STIME               TTY                 TIME                CMD
