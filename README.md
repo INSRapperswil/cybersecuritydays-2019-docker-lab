@@ -193,7 +193,7 @@ In this part, you will analyze Docker's Linux namespace handling.
 docker run --rm -d alpine ping 8.8.8.8
 ```
 
-1. Find the container's **ID** that you have just started (and save it for later):
+2. Find the container's **ID** that you have just started (and save it for later):
 ```bash
 root@hlkali:/home/hacker# docker ps
 CONTAINER ID        IMAGE               COMMAND             CREATED             STATUS              PORTS               NAMES
@@ -205,7 +205,7 @@ CONTAINER ID        IMAGE               COMMAND             CREATED             
 root@hlkali:/home/hacker# docker inspect --format '{{.State.Pid}}' 0ac5a5a8ab17
 13758     # <-- That's the container's PID
 ```
-1. Now, it is time to enter the container's NET namespace (netns). Use the `nsenter` command shown down here to start a Bash shell inside the container's netns.
+4. Now, it is time to enter the container's NET namespace (netns). Use the `nsenter` command shown down here to start a Bash shell inside the container's netns.
 ```bash
 root@hlkali:/home/hacker# nsenter -t 13758 -n /bin/bash
 ```
