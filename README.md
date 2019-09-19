@@ -106,7 +106,7 @@ Have you received the message on the server side? You should have. If not, pleas
 As you have seen, communication between these containers inside the `docker0` network can take place via all ports. If you still hesitate to believe it, please try any other port and test the communication again. 
 Perhaps with UDP? Netcat parameter `-u` allows you to do so.
 
-Exit the containers by entering `Ctrl+c`.
+Exit the containers by entering `Ctrl+c` + `Ctrl+d`.
 
 You could restrict this default communication between containers inside the same Docker network (attached to the same Linux bridge) by setting the Docker daemon property `icc` (inter-container connection) to `false`. This could be done inside `/etc/docker/daemon.json` (file does not exist by default). Afterwards, the Docker daemon must be restarted using `systemctl restart docker`.
 
@@ -126,7 +126,7 @@ docker run --rm -it --net mytest_network hsrnetwork/network-ninja /bin/bash
 
 Try again to send a `Hello World` message in the same way as you did before. Does it work? In fact, it should not work. Why? Well, let us have a look at the magic of one construct behind Docker's default networking: `iptables`
 
-Exit the containers by entering `Ctrl+c`.
+Exit the containers by entering `Ctrl+c` + `Ctrl+d`.
 
 Get the network ID of the `mytest_network` network:
 ```bash
@@ -271,6 +271,7 @@ Use the [official Dockerfile reference](https://docs.docker.com/engine/reference
 root@hlkali:/home/hacker# apt remove docker-compose -y
 root@hlkali:/home/hacker# curl -L "https://github.com/docker/compose/releases/download/1.24.1/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
 <...output truncated...>
+root@hlkali:/home/hacker# chmod +x /usr/local/bin/docker-compose
 root@hlkali:/home/hacker# bash
 root@hlkali:/home/hacker# docker-compose --version
 docker-compose version 1.24.1, build 4667896b
@@ -319,7 +320,7 @@ UID                 PID                 PPID                C                   
 hacker              4076                4026                3                   18:09               ?                   00:00:01            node server.js
 ```
 
-To terminate the blocking `docker-compose up` command, simply issue `Ctrl-c`.
+To terminate the blocking `docker-compose up` command, simply issue `Ctrl+c`.
 
 
 ### Part 5 - Optimize your Docker Images (Optional)
