@@ -126,6 +126,8 @@ docker run --rm -it --net mytest_network hsrnetwork/network-ninja /bin/bash
 
 Try again to send a `Hello World` message in the same way as you did before. Does it work? In fact, it should not work. Why? Well, let us have a look at the magic of one construct behind Docker's default networking: `iptables`
 
+Exit the containers by entering `Ctrl+c`.
+
 Get the network ID of the `mytest_network` network:
 ```bash
 root@hlkali:/home/hacker# docker network ls
@@ -153,8 +155,6 @@ root@hlkali:/home/hacker# iptables -S FORWARD
 ```
 
 As you can see, Docker has automatically inserted the `-A FORWARD -i br-891816429ee8 -o br-891816429ee8 -j DROP` rule which drops any traffic from the incoming (`-i`) bridge interface `br-891816429ee8` to itself (`-o`). For the default bridge interface `docker0`, however, this communication flow is accepted (`-A FORWARD -i docker0 -o docker0 -j ACCEPT`).
-
-Exit the containers by entering `Ctrl+c`.
 
 Let us have another look at Docker's `iptables` management. Within the server Terminal window, start a container which publishes its port `5000` to the outside world via the hosts port `5000`:
 
@@ -193,7 +193,7 @@ In this part, you will analyze Docker's Linux namespace handling.
 docker run --rm -d alpine ping 8.8.8.8
 ```
 
-1. Find the container's **ID** that you have just started (and save it for later):
+2. Find the container's **ID** that you have just started (and save it for later):
 ```bash
 root@hlkali:/home/hacker# docker ps
 CONTAINER ID        IMAGE               COMMAND             CREATED             STATUS              PORTS               NAMES
@@ -205,7 +205,7 @@ CONTAINER ID        IMAGE               COMMAND             CREATED             
 root@hlkali:/home/hacker# docker inspect --format '{{.State.Pid}}' 0ac5a5a8ab17
 13758     # <-- That's the container's PID
 ```
-1. Now, it is time to enter the container's NET namespace (netns). Use the `nsenter` command shown down here to start a Bash shell inside the container's netns.
+4. Now, it is time to enter the container's NET namespace (netns). Use the `nsenter` command shown down here to start a Bash shell inside the container's netns.
 ```bash
 root@hlkali:/home/hacker# nsenter -t 13758 -n /bin/bash
 ```
